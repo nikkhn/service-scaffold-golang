@@ -1,7 +1,6 @@
 package main
 
 import (
-    "fmt"
     "github.com/gocql/gocql"
     "log"
     "os"
@@ -12,21 +11,22 @@ const (
    CASSANDRA_HOST = "localhost"
    CASSANDRA_USERNAME = "cassandra"
    CASSANDRA_PASSWORD = "cassandra"
+   CASSANDRA_CQL_PORT = 9042
    PAGE_SIZE = 10
 )
 
 type Cassandra struct {
     // get version, host, date, etc. from Makefile
-
 }
 
-type ClusterConfig struct {
+type clusterConfig struct {
     hosts string // TODO(gmodena) should be a list of hosts
     keyspace string
     authenticator gocql.Authenticator
 }
 
-func LookupEnvOrElse(key string, fallback string) string {
+
+func lookupEnvOrElse(key string, fallback string) string {
     val, err := os.LookupEnv(key)
     if err == false {
        val = fallback
@@ -34,41 +34,56 @@ func LookupEnvOrElse(key string, fallback string) string {
     return val
 }
 
-func GetConfig() ClusterConfig {
-    host := LookupEnvOrElse("CASSANDRA_HOST", CASSANDRA_HOST)
-    username := LookupEnvOrElse("CASSANDRA_USERNAME", CASSANDRA_USERNAME)
-    password := LookupEnvOrElse("CASSANDRA_PASSWORD", CASSANDRA_PASSWORD)
-    keyspace := LookupEnvOrElse("CASSANDRA_KEYSPACE", CASSANDRA_KEYSPACE)
+func getConfig() clusterConfig {
+    host := lookupEnvOrElse("CASSANDRA_HOST", CASSANDRA_HOST)
+    username := lookupEnvOrElse("CASSANDRA_USERNAME", CASSANDRA_USERNAME)
+    password := lookupEnvOrElse("CASSANDRA_PASSWORD", CASSANDRA_PASSWORD)
+    keyspace := lookupEnvOrElse("CASSANDRA_KEYSPACE", CASSANDRA_KEYSPACE)
 
     authenticator := gocql.PasswordAuthenticator{Username: username, Password: password}
 
-    return ClusterConfig{hosts: host, keyspace: keyspace, authenticator: authenticator}
+    return clusterConfig{hosts: host, keyspace: keyspace, authenticator: authenticator}
 }
 
-func InitCluster(config ClusterConfig) *gocql.ClusterConfig {
+func initCluster(config clusterConfig) *gocql.ClusterConfig {
     cluster := gocql.NewCluster(config.hosts)
     cluster.Authenticator = config.authenticator
     cluster.Keyspace = config.keyspace
     cluster.Consistency = gocql.One
-
+    cluster.Port = CASSANDRA_CQL_PORT
+    cluster.PageSize = PAGE_SIZE
     return cluster
 }
 
-func GetSession()  *gocql.Session {
-    config := GetConfig()
-    cluster := InitCluster(config)
-    session, err := cluster.CreateSession()
+func IterRows(query gocql.Query) chan map[string]interface{} {
+    err := query.Exec()
     if err != nil {
         log.Fatal(err)
     }
 
-    session.SetPageSize(PAGE_SIZE)
+    iter := query.Iter()
+    c := make(chan map[string]interface{})
+    go func() {
+        rowValues := make(map[string]interface{})
+        for iter.MapScan(rowValues) {
+            c  <- rowValues
+            rowValues = make(map[string]interface{})
+        }
+        close(c)
+    }()
+    return c
+}
+
+func getSession() *gocql.Session {
+    config := getConfig()
+    cluster := initCluster(config)
+    session, err := cluster.CreateSession()
+    if  err != nil {
+        log.Fatal(err)
+    }
     return session
 }
 
-func main() {
-    cassandra := GetSession()
-    query := cassandra.Query("select count(*) from matches")
-
-    fmt.Print(query.Exec())
+func GetCassandraSession() *gocql.Session {
+    return getSession()
 }
