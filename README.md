@@ -8,12 +8,15 @@ go get github.com/gocql/gocql
 ```
 
 ### Configuration
+TODO: storing a password in env var is a bad idea. Maybe move secrets to a config file?
+
 The connection to a Cassandra cluster can be configured by setting the following env variables:
 * `CASSANDRA_KEYSPACE` the default keyspace to use.
 * `CASSANDRA_HOST` the host to connect to (TODO: this should be multiple hosts).
 * `CASSANDRA_USERNAME` for password based authentication.
 * `CASSANDRA_PASSWORD` for password based authentication.
 * `CASSANDRA_CQL_PORT` = 9042
+
 
 ### API (WIP)
 Public methods. WIP.

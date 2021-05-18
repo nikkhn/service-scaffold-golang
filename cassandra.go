@@ -11,7 +11,7 @@ const (
    CASSANDRA_KEYSPACE = "keyspace"
    CASSANDRA_HOST = "localhost"
    CASSANDRA_USERNAME = "cassandra"
-   CASSANDRA_PASSWORD = "cassandra"
+   CASSANDRA_PASSWORD = "cassandra" // TODO: storing a password in env var is a bad idea. Maybe move secrets to a config file?
    CASSANDRA_CQL_PORT = "9042"
    PAGE_SIZE = 10
 )
