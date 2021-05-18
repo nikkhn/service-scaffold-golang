@@ -4,6 +4,7 @@ import (
     "github.com/gocql/gocql"
     "log"
     "os"
+    "strconv"
 )
 
 const (
@@ -11,7 +12,7 @@ const (
    CASSANDRA_HOST = "localhost"
    CASSANDRA_USERNAME = "cassandra"
    CASSANDRA_PASSWORD = "cassandra"
-   CASSANDRA_CQL_PORT = 9042
+   CASSANDRA_CQL_PORT = "9042"
    PAGE_SIZE = 10
 )
 
@@ -22,6 +23,7 @@ type Cassandra struct {
 type clusterConfig struct {
     hosts string // TODO(gmodena) should be a list of hosts
     keyspace string
+    cql_port int
     authenticator gocql.Authenticator
 }
 
@@ -39,10 +41,13 @@ func getConfig() clusterConfig {
     username := lookupEnvOrElse("CASSANDRA_USERNAME", CASSANDRA_USERNAME)
     password := lookupEnvOrElse("CASSANDRA_PASSWORD", CASSANDRA_PASSWORD)
     keyspace := lookupEnvOrElse("CASSANDRA_KEYSPACE", CASSANDRA_KEYSPACE)
-
+    cql_port, err := strconv.Atoi(lookupEnvOrElse("CASSANDRA_CQL_PORT", CASSANDRA_CQL_PORT))
+    if err != nil {
+        log.Fatal(err)
+    }
     authenticator := gocql.PasswordAuthenticator{Username: username, Password: password}
 
-    return clusterConfig{hosts: host, keyspace: keyspace, authenticator: authenticator}
+    return clusterConfig{hosts: host, keyspace: keyspace, cql_port: cql_port, authenticator: authenticator}
 }
 
 func initCluster(config clusterConfig) *gocql.ClusterConfig {
@@ -50,7 +55,7 @@ func initCluster(config clusterConfig) *gocql.ClusterConfig {
     cluster.Authenticator = config.authenticator
     cluster.Keyspace = config.keyspace
     cluster.Consistency = gocql.One
-    cluster.Port = CASSANDRA_CQL_PORT
+    cluster.Port = config.cql_port
     cluster.PageSize = PAGE_SIZE
     return cluster
 }
