@@ -5,7 +5,10 @@ GO_LDFLAGS  = -X main.version=$(if $(VERSION),$(VERSION),unknown)
 GO_LDFLAGS += -X main.buildDate=$(if $(BUILD_DATE),$(BUILD_DATE),unknown)
 
 build:
-	go build -ldflags "$(GO_LDFLAGS)" main.go healthz.go
+	go build -ldflags "$(GO_LDFLAGS)" main.go healthz.go imagematching.go cassandra.go
 
 run:
-	go run -ldflags "$(GO_LDFLAGS)" main.go healthz.go
+	go run -ldflags "$(GO_LDFLAGS)" main.go healthz.go imagematching.go cassandra.go
+
+test:
+	echo "Not implemented"

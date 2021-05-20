@@ -1,0 +1,23 @@
+version: v4
+base: docker-registry.wikimedia.org/golang:1.14-1
+lives:
+  in: /srv/service/
+
+variants:
+  build:
+    apt: { packages: [build-essential] }
+    copies: [local]
+    entrypoint: [make, build]
+  development:
+    includes: [build]
+    apt: { packages: [ca-certificates] }
+    entrypoint: [make, run]
+  test:
+    includes: [build]
+    apt: { packages: [ca-certificates] }
+    entrypoint: [make, test]
+  prep:
+    includes: [build]
+  production:
+    copies: [prep]
+    entrypoint: [make, run]

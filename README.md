@@ -1,30 +1,23 @@
 # service-template-go
 
-## Cassandra connector
+This branch contains a demo endpoint built atop `service-scaffold-golang` and `https://github.com/eevans/servicelib-golang`.
 
-`cassandra.go` implements a simple wrapper around the `gocql` Cassandra wrapper.
+Depends on
 ```
-go get github.com/gocql/gocql
+go get github.com/eevans/servicelib-golang/logger
+go get "github.com/google/uuid"
 ```
 
-### Configuration
-TODO: storing a password in env var is a bad idea. Maybe move secrets to a config file?
+# Scaffold endpoints
 
-The connection to a Cassandra cluster can be configured by setting the following env variables:
-* `CASSANDRA_KEYSPACE` the default keyspace to use.
-* `CASSANDRA_HOST` the host to connect to (TODO: this should be multiple hosts).
-* `CASSANDRA_USERNAME` for password based authentication.
-* `CASSANDRA_PASSWORD` for password based authentication.
-* `CASSANDRA_CQL_PORT` = 9042
+* Health status is available at `/healtz`
+```
+curl http://localhost:8000/healthz        
+{"version":"365c332","build_date":"1621532979","build_host":"wmf2799","go_version":"go1.15.4"}
+```
 
-
-### API (WIP)
-Public methods. WIP.
-  * `GetCassandraSession() gocql.Session` Init a Cassandra connection, and returns a `Session`.
-  * `IterRows() chan map[string]interface{}` returns a generator over a paginated result set.
-
-### Example
-`imagerec_example.go` shows how to fetch results from the `imagerec` keyspace 
+# Example endpoint
+`imagematching.go` implements an endpoint that fetch results from the `imagerec` keyspace 
 provided at [https://github.com/gmodena/wmf-streaming-imagematching](https://github.com/gmodena/wmf-streaming-imagematching).
 
 Clone the repo and start a dockerized Cassandra cluster as described in the project README.md.
@@ -32,10 +25,33 @@ Clone the repo and start a dockerized Cassandra cluster as described in the proj
 git clone https://github.com/gmodena/wmf-streaming-imagematching.git
 make cassandra
 ```
-Port `9042` (CQL protocol) is mapped from the container to the host at 127.0.0.1:9042
 
-Execute the example with
+The endpoint depends on the `gocql` package:
 ```
-go build imagerec_example.go cassandra.go 
-CASSANDRA_KEYSPACE=imagerec ./imagerec_example
+go get github.com/gocql/gocql
 ```
+
+Then execute the service with
+```
+make run
+```
+
+And query with:
+```
+$ curl "http://localhost:8000/predict?wiki=enwiki&page_id=10003732"
+{"prediction":[{"image_id":"Genova_12-8-05_040.jpg"}],"model_version":"1a"}
+```
+
+### Docker Quickstart
+
+Generated a Dockerfile for service variant with `blubber .pipeline/blubber.yaml <variant> > Dockerfile`,
+and build using regular Docker tools.
+
+
+For example, build and run a `development` variant of a service with:
+```
+blubber .pipeline/blubber.yaml development > Dockerfile
+docker build -t service-scaffold-golang .
+docker run -p 8000:8000  service-scaffold-golang
+```
+
