@@ -28,7 +28,6 @@ import (
 // Config represents an application-wide configuration.
 type Config struct {
 	ServiceName string `yaml:"service_name"`
-	ServiceType string `yaml:"service_type"`
 	BaseURI     string `yaml:"base_uri"`
 	Address     string `yaml:"listen_address"`
 	Port        int    `yaml:"listen_port"`
@@ -40,7 +39,6 @@ func NewConfig(data []byte) (*Config, error) {
 	// Populate a new Config with sane defaults
 	config := Config{
 		ServiceName: "service-scaffold-golang",
-		ServiceType: "scaffold",
 		BaseURI:     "/v0",
 		Address:     "localhost",
 		Port:        8080,

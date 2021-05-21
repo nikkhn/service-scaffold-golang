@@ -15,9 +15,6 @@
 # The name of this service (as it appears in logs)
 service_name: scaffold-demo
 
-# The type of this service (as it appears in logs)
-service_type: service-scaffold-golang
-
 # A constant prepended to all URIs
 base_uri: /v0
 

@@ -50,8 +50,7 @@ func main() {
 	logger, err = log.NewLogger(
 		os.Stdout,
 		config.ServiceName,
-		config.ServiceType,
-		log.INFO, // TODO: Change to use config
+		config.LogLevel,
 	)
 
 	if err != nil {
@@ -61,7 +60,7 @@ func main() {
 
 	logger.Info("Initializing service %s (Go version: %s, Build host: %s, Timestamp: %s", config.ServiceName, version, buildHost, buildDate)
 
-	http.Handle("healthz", &HealthzHandler{NewHealthz(version, buildDate, buildHost)})
+	http.Handle("/healthz", &HealthzHandler{NewHealthz(version, buildDate, buildHost)})
 	http.Handle(path.Join(config.BaseURI, "echo"), &EchoHandler{})
 	http.ListenAndServe(fmt.Sprintf("%s:%d", config.Address, config.Port), nil)
 }

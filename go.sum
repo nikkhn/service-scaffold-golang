@@ -1,9 +1,12 @@
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/eevans/servicelib-golang v0.0.0-20210520183538-e3135ef0b2ac h1:uiwXMGNV18GOwJIqdqRy+j/C/rKvxAgGaQKX7kSEJ54=
+github.com/eevans/servicelib-golang v0.0.0-20210521140747-09cf3d79acb3 h1:658uXcBjRFqAV0bAOo+t22QajwyGOA/LlAZ19QAORZY=
 github.com/eevans/servicelib-golang/logger v0.0.0-20210520183538-e3135ef0b2ac h1:iaE7P3zlyMJ3Mb/RRPfiQX+2g9LsTAN9gZLBn+wHQSY=
 github.com/eevans/servicelib-golang/logger v0.0.0-20210520183538-e3135ef0b2ac/go.mod h1:9pQ+hfSvnBhezjpoft1gqrSF9Zmf44JgFzdeRUm0JeQ=
 github.com/eevans/servicelib-golang/logger v0.0.0-20210521005710-8c4bc10fe438 h1:SW2YkHFoyEJpuKaplNY6G0t+c5deNHYm0cRmNvPXQOA=
 github.com/eevans/servicelib-golang/logger v0.0.0-20210521005710-8c4bc10fe438/go.mod h1:9pQ+hfSvnBhezjpoft1gqrSF9Zmf44JgFzdeRUm0JeQ=
+github.com/eevans/servicelib-golang/logger v0.0.0-20210521140747-09cf3d79acb3 h1:f/IHnXjvLEj8v2puWQj17+XamEmIGRH8AMh9OUtAWU0=
+github.com/eevans/servicelib-golang/logger v0.0.0-20210521140747-09cf3d79acb3/go.mod h1:9pQ+hfSvnBhezjpoft1gqrSF9Zmf44JgFzdeRUm0JeQ=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
