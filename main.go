@@ -61,6 +61,6 @@ func main() {
 	logger.Info("Initializing service %s (Go version: %s, Build host: %s, Timestamp: %s", config.ServiceName, version, buildHost, buildDate)
 
 	http.Handle("/healthz", &HealthzHandler{NewHealthz(version, buildDate, buildHost)})
-	http.Handle(path.Join(config.BaseURI, "echo"), &EchoHandler{})
+	http.Handle(path.Join(config.BaseURI, "echo"), &EchoHandler{logger})
 	http.ListenAndServe(fmt.Sprintf("%s:%d", config.Address, config.Port), nil)
 }

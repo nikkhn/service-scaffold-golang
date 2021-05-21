@@ -22,6 +22,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/eevans/servicelib-golang/logger"
 	"schneider.vip/problem"
 )
 
@@ -30,7 +31,9 @@ type Echo struct {
 	Timestamp string `json:"timestamp"`
 }
 
-type EchoHandler struct{}
+type EchoHandler struct {
+	Logger *logger.Logger
+}
 
 func (s *EchoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var echoBody []byte
@@ -73,12 +76,14 @@ func (s *EchoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	echoResponse.Timestamp = time.Now().Format(time.RFC3339)
 
 	if response, err = json.MarshalIndent(echoResponse, "", "  "); err != nil {
+		s.Logger.Request(r).Log(logger.ERROR, "Unable to echo: %s", err) // TODO: Test for this scenario
 		problem.New(
 			problem.Status(http.StatusInternalServerError),
 			problem.Detail("Unable to echo"),
 		).WriteTo(w)
 		return
 	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(response)
