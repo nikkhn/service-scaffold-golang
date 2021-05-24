@@ -22,8 +22,12 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"runtime"
 
 	log "github.com/eevans/servicelib-golang/logger"
+	"github.com/eevans/servicelib-golang/middleware"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 var (
@@ -31,6 +35,36 @@ var (
 	buildDate = "unknown"
 	buildHost = "unknown"
 )
+
+var (
+	reqCounter = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "http_requests_total",
+			Help: "Count of HTTP requests processed, partitioned by status code and HTTP method.",
+		},
+		[]string{"code", "method"},
+	)
+
+	durationHisto = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "http_request_duration_seconds",
+			Help:    "A histogram of latencies for requests, partitioned by status code and HTTP method.",
+			Buckets: []float64{.001, .0025, .0050, .01, .025, .050, .10, .25, .50, 1},
+		},
+		[]string{"code", "method"},
+	)
+	promBuildInfoGauge = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Name:        "service_scaffold_golang_build_info",
+			Help:        "Build information",
+			ConstLabels: map[string]string{"version": version, "build_date": buildDate, "build_host": buildHost, "go_version": runtime.Version()},
+		})
+)
+
+func init() {
+	prometheus.MustRegister(reqCounter, durationHisto, promBuildInfoGauge)
+	promBuildInfoGauge.Set(1)
+}
 
 // Entrypoint for our service
 func main() {
@@ -60,7 +94,11 @@ func main() {
 
 	logger.Info("Initializing service %s (Go version: %s, Build host: %s, Timestamp: %s", config.ServiceName, version, buildHost, buildDate)
 
+	// Wrap certain routes to collect metrics
+	echoHandlerWrapper := middleware.PrometheusInstrumentationMiddleware(reqCounter, durationHisto)(&EchoHandler{logger})
+
 	http.Handle("/healthz", &HealthzHandler{NewHealthz(version, buildDate, buildHost)})
-	http.Handle(path.Join(config.BaseURI, "echo"), &EchoHandler{logger})
+	http.Handle("/metrics", promhttp.Handler())
+	http.Handle(path.Join(config.BaseURI, "echo"), echoHandlerWrapper)
 	http.ListenAndServe(fmt.Sprintf("%s:%d", config.Address, config.Port), nil)
 }
