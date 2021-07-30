@@ -17,11 +17,114 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
+	"errors"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
+	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 const prefixURI = "/v0"
 
 func TestInvalidMethod(t *testing.T) {
 
+	req, err := http.NewRequest("GET", "/v0/echo", nil)
+
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	rr := httptest.NewRecorder()
+	handler := EchoHandler{}
+	handler.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusMethodNotAllowed, rr.Code, "Incorrect status code returned")
+
+}
+
+func TestBadRequest(t *testing.T) {
+	msg := url.Values{}
+
+	req, err := http.NewRequest("POST", "/v0/echo", strings.NewReader(msg.Encode()))
+
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	rr := httptest.NewRecorder()
+	handler := EchoHandler{}
+
+	handler.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code, "Incorrect status code returned")
+}
+
+func TestBadBody(t *testing.T) {
+
+	req, err := http.NewRequest("POST", "/v0/echo", strings.NewReader("bad req body"))
+
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	rr := httptest.NewRecorder()
+	handler := EchoHandler{}
+
+	handler.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code, "Incorrect status code returned")
+}
+
+type errReader int
+
+func (errReader) Read(p []byte) (n int, err error) {
+	return 0, errors.New("test error")
+}
+
+func TestBody(t *testing.T) {
+
+	req, err := http.NewRequest("POST", "/v0/echo", errReader(0))
+
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	rr := httptest.NewRecorder()
+
+	handler := EchoHandler{}
+
+	handler.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code, "Incorrect status code returned")
+}
+
+type Body struct {
+	message string
+}
+
+func TestTimeStamp(t *testing.T) {
+	msg, _ := json.Marshal(Body{"echo"})
+
+	req, err := http.NewRequest("POST", "/v0/echo", bytes.NewBuffer(msg))
+
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	rr := httptest.NewRecorder()
+	handler := EchoHandler{}
+
+	handler.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusOK, rr.Code, "Incorrect status code returned")
 }
