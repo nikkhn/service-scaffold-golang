@@ -51,7 +51,7 @@ func TestInvalidMethod(t *testing.T) {
 func TestBadRequest(t *testing.T) {
 	msg := url.Values{}
 
-	req, err := http.NewRequest("POST", "/v0/echo", strings.NewReader(msg.Encode()))
+	req, err := http.NewRequest("POST", "/v0/echo", strings.NewReader(""))
 
 	if err != nil {
 		t.Error(err)
