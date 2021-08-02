@@ -20,10 +20,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -105,17 +107,13 @@ func TestFailedBody(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, rr.Code, "Incorrect status code returned")
 }
 
-type Body struct {
-	message string
-}
-
 func TestTimeStamp(t *testing.T) {
 	msg, _ := json.Marshal(Echo{Message: "echo"})
 
-	req, err := http.NewRequest("POST", "/v0/echo", bytes.NewBuffer(msg))
+	req, erra := http.NewRequest("POST", "/v0/echo", bytes.NewBuffer(msg))
 
-	if err != nil {
-		t.Error(err)
+	if erra != nil {
+		t.Error(erra)
 		return
 	}
 
@@ -124,5 +122,22 @@ func TestTimeStamp(t *testing.T) {
 
 	handler.ServeHTTP(rr, req)
 
-	assert.Equal(t, http.StatusOK, rr.Code, "Incorrect status code returned")
+	res := rr.Result().Body
+
+	body, _ := io.ReadAll(res)
+
+	e := Echo{}
+
+	errb := json.Unmarshal(body, &e)
+
+	if errb != nil {
+		t.Error(errb)
+		return
+	}
+
+	timestamp, errc := time.Parse(time.RFC3339, e.Timestamp)
+
+	assert.NoError(t, errc, "Response body does not contain timestamp")
+	assert.NotEmpty(t, timestamp, "No timestamp found")
+	assert.Equal(t, e.Message, "echo", "Echoed message did not match sent message")
 }
