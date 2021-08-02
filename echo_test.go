@@ -22,7 +22,6 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"strings"
 	"testing"
 
@@ -48,8 +47,7 @@ func TestInvalidMethod(t *testing.T) {
 
 }
 
-func TestBadRequest(t *testing.T) {
-	msg := url.Values{}
+func TestEmptyBody(t *testing.T) {
 
 	req, err := http.NewRequest("POST", "/v0/echo", strings.NewReader(""))
 
@@ -66,7 +64,7 @@ func TestBadRequest(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, rr.Code, "Incorrect status code returned")
 }
 
-func TestBadBody(t *testing.T) {
+func TestInvalidJSON(t *testing.T) {
 
 	req, err := http.NewRequest("POST", "/v0/echo", strings.NewReader("bad req body"))
 
@@ -89,7 +87,7 @@ func (errReader) Read(p []byte) (n int, err error) {
 	return 0, errors.New("test error")
 }
 
-func TestBody(t *testing.T) {
+func TestFailedBody(t *testing.T) {
 
 	req, err := http.NewRequest("POST", "/v0/echo", errReader(0))
 
