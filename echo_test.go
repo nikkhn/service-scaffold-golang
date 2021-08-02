@@ -112,7 +112,7 @@ type Body struct {
 }
 
 func TestTimeStamp(t *testing.T) {
-	msg, _ := json.Marshal(Body{"echo"})
+	msg, _ := json.Marshal(Echo{Message: "echo"})
 
 	req, err := http.NewRequest("POST", "/v0/echo", bytes.NewBuffer(msg))
 
