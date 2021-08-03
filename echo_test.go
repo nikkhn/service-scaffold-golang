@@ -31,8 +31,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const prefixURI = "/v0"
-
 func TestInvalidMethod(t *testing.T) {
 
 	req, err := http.NewRequest("GET", "/v0/echo", nil)
@@ -40,6 +38,7 @@ func TestInvalidMethod(t *testing.T) {
 	require.NoError(t, err)
 
 	rr := httptest.NewRecorder()
+
 	handler := EchoHandler{}
 	handler.ServeHTTP(rr, req)
 

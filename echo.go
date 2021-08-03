@@ -79,7 +79,7 @@ func (s *EchoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	echoResponse.Timestamp = time.Now().Format(time.RFC3339)
 
 	if response, err = json.MarshalIndent(echoResponse, "", "  "); err != nil {
-		s.Logger.Request(r).Log(logger.ERROR, "Unable to echo: %s", err) // TODO: Test for this scenario
+		s.Logger.Request(r).Log(logger.ERROR, "Unable to echo: %s", err)
 		problem.New(
 			problem.Status(http.StatusInternalServerError),
 			problem.Detail("Unable to echo"),
