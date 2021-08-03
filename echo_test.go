@@ -96,7 +96,7 @@ func TestFailedBody(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, rr.Code, "Incorrect status code returned")
 }
 
-func TestTimeStamp(t *testing.T) {
+func TestEcho(t *testing.T) {
 	msg, _ := json.Marshal(Echo{Message: "echo"})
 
 	req, erra := http.NewRequest("POST", "/v0/echo", bytes.NewBuffer(msg))
