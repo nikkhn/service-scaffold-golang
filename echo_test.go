@@ -28,6 +28,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const prefixURI = "/v0"
@@ -36,10 +37,7 @@ func TestInvalidMethod(t *testing.T) {
 
 	req, err := http.NewRequest("GET", "/v0/echo", nil)
 
-	if err != nil {
-		t.Error(err)
-		return
-	}
+	require.NoError(t, err)
 
 	rr := httptest.NewRecorder()
 	handler := EchoHandler{}
@@ -53,10 +51,7 @@ func TestEmptyBody(t *testing.T) {
 
 	req, err := http.NewRequest("POST", "/v0/echo", strings.NewReader(""))
 
-	if err != nil {
-		t.Error(err)
-		return
-	}
+	require.NoError(t, err)
 
 	rr := httptest.NewRecorder()
 	handler := EchoHandler{}
@@ -70,10 +65,7 @@ func TestInvalidJSON(t *testing.T) {
 
 	req, err := http.NewRequest("POST", "/v0/echo", strings.NewReader("bad req body"))
 
-	if err != nil {
-		t.Error(err)
-		return
-	}
+	require.NoError(t, err)
 
 	rr := httptest.NewRecorder()
 	handler := EchoHandler{}
@@ -93,10 +85,7 @@ func TestFailedBody(t *testing.T) {
 
 	req, err := http.NewRequest("POST", "/v0/echo", errReader(0))
 
-	if err != nil {
-		t.Error(err)
-		return
-	}
+	require.NoError(t, err)
 
 	rr := httptest.NewRecorder()
 
@@ -112,10 +101,7 @@ func TestTimeStamp(t *testing.T) {
 
 	req, erra := http.NewRequest("POST", "/v0/echo", bytes.NewBuffer(msg))
 
-	if erra != nil {
-		t.Error(erra)
-		return
-	}
+	require.NoError(t, erra)
 
 	rr := httptest.NewRecorder()
 	handler := EchoHandler{}
@@ -130,10 +116,7 @@ func TestTimeStamp(t *testing.T) {
 
 	errb := json.Unmarshal(body, &e)
 
-	if errb != nil {
-		t.Error(errb)
-		return
-	}
+	require.NoError(t, errb)
 
 	timestamp, errc := time.Parse(time.RFC3339, e.Timestamp)
 
