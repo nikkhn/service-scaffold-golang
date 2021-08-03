@@ -31,6 +31,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type httperr struct {
+	Status int
+	Detail string
+}
+
 func TestInvalidMethod(t *testing.T) {
 
 	req, err := http.NewRequest("GET", "/v0/echo", nil)
@@ -42,7 +47,20 @@ func TestInvalidMethod(t *testing.T) {
 	handler := EchoHandler{}
 	handler.ServeHTTP(rr, req)
 
-	assert.Equal(t, http.StatusMethodNotAllowed, rr.Code, "Incorrect status code returned")
+	assert.Equal(t, http.StatusMethodNotAllowed, rr.Code, "Incorrect status code thrown")
+
+	res := rr.Result().Body
+
+	body, _ := io.ReadAll(res)
+
+	e := httperr{}
+
+	err = json.Unmarshal(body, &e)
+
+	require.NoError(t, err)
+
+	assert.Equal(t, e.Status, http.StatusMethodNotAllowed, "Incorrect status code delivered to client")
+	assert.Equal(t, e.Detail, "Method Not Allowed", "Incorrect detail delivered to client")
 
 }
 
@@ -57,7 +75,20 @@ func TestEmptyBody(t *testing.T) {
 
 	handler.ServeHTTP(rr, req)
 
-	assert.Equal(t, http.StatusBadRequest, rr.Code, "Incorrect status code returned")
+	assert.Equal(t, http.StatusBadRequest, rr.Code, "Incorrect status code thrown")
+
+	res := rr.Result().Body
+
+	body, _ := io.ReadAll(res)
+
+	e := httperr{}
+
+	err = json.Unmarshal(body, &e)
+
+	require.NoError(t, err)
+
+	assert.Equal(t, e.Status, http.StatusBadRequest, "Incorrect status code delivered to client")
+	assert.Equal(t, e.Detail, "Body must include `message`", "Incorrect detail delivered to client")
 }
 
 func TestInvalidJSON(t *testing.T) {
@@ -72,6 +103,19 @@ func TestInvalidJSON(t *testing.T) {
 	handler.ServeHTTP(rr, req)
 
 	assert.Equal(t, http.StatusBadRequest, rr.Code, "Incorrect status code returned")
+
+	res := rr.Result().Body
+
+	body, _ := io.ReadAll(res)
+
+	e := httperr{}
+
+	err = json.Unmarshal(body, &e)
+
+	require.NoError(t, err)
+
+	assert.Equal(t, e.Status, http.StatusBadRequest, "Incorrect status code delivered to client")
+	assert.Equal(t, e.Detail, "Invalid JSON", "Incorrect detail delivered to client")
 }
 
 type errReader int
@@ -93,14 +137,27 @@ func TestFailedBody(t *testing.T) {
 	handler.ServeHTTP(rr, req)
 
 	assert.Equal(t, http.StatusBadRequest, rr.Code, "Incorrect status code returned")
+
+	res := rr.Result().Body
+
+	body, _ := io.ReadAll(res)
+
+	e := httperr{}
+
+	err = json.Unmarshal(body, &e)
+
+	require.NoError(t, err)
+
+	assert.Equal(t, e.Status, http.StatusBadRequest, "Incorrect status code delivered to client")
+	assert.Equal(t, e.Detail, "Unable to read response body", "Incorrect detail delivered to client")
 }
 
 func TestEcho(t *testing.T) {
 	msg, _ := json.Marshal(Echo{Message: "echo"})
 
-	req, erra := http.NewRequest("POST", "/v0/echo", bytes.NewBuffer(msg))
+	req, err := http.NewRequest("POST", "/v0/echo", bytes.NewBuffer(msg))
 
-	require.NoError(t, erra)
+	require.NoError(t, err)
 
 	rr := httptest.NewRecorder()
 	handler := EchoHandler{}
@@ -113,9 +170,9 @@ func TestEcho(t *testing.T) {
 
 	e := Echo{}
 
-	errb := json.Unmarshal(body, &e)
+	err = json.Unmarshal(body, &e)
 
-	require.NoError(t, errb)
+	require.NoError(t, err)
 
 	timestamp, errc := time.Parse(time.RFC3339, e.Timestamp)
 
